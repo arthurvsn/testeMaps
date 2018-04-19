@@ -55,14 +55,14 @@ var map;
 function initMap() {
 	var map = new google.maps.Map(document.getElementById('map'), {
 		center: { lat: -19.963879499999997, lng: -43.939273299999996 },
-		zoom: 3
+		zoom: 15
 	});
 
 	var redCoords = [
 		{ lat: -19.963879499999997, lng: -43.939273299998787 },
-		{ lat: -19.863879499999879, lng: -43.639273299997403 },
-		{ lat: -19.763879499991347, lng: -43.739273299997966 },
-		{ lat: -19.663879499992487, lng: -43.839273299998796 },
+		{ lat: -19.863879499999879, lng: -43.939273299997403 },
+		{ lat: -19.763879499991347, lng: -43.939273299997966 },
+		{ lat: -19.663879499992487, lng: -43.939273299998796 },
 	];
 
 	// Construct a draggable red triangle with geodesic set to true.

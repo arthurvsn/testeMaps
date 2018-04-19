@@ -5,8 +5,8 @@
 <html>
 	<!-- <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js"></script> -->
 	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-	<script src="index.js" type="text/javascript"></script>
-	<link  href="index.css" rel="stylesheet" type="text/css" />
+	<script src="js/index.js" type="text/javascript"></script>
+	<link  href="css/index.css" rel="stylesheet" type="text/css" />
 
 	<!-- <table id="teste" name="teste">
 		<tr>
