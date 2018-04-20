@@ -53,6 +53,7 @@ var map;
 } */
 
 function initMap() {
+
 	var map = new google.maps.Map(document.getElementById('map'), {
 		center: { lat: -19.963879499999997, lng: -43.939273299999996 },
 		zoom: 15
@@ -60,9 +61,9 @@ function initMap() {
 
 	var redCoords = [
 		{ lat: -19.963879499999997, lng: -43.939273299998787 },
-		{ lat: -19.863879499999879, lng: -43.939273299997403 },
-		{ lat: -19.763879499991347, lng: -43.939273299997966 },
-		{ lat: -19.663879499992487, lng: -43.939273299998796 },
+		{ lat: -18.963879499990549, lng: -42.939273299789790 },
+		{ lat: -18.963879499993418, lng: -42.939273299879797 },
+		{ lat: -18.963879499998797, lng: -42.939273299054879 },
 	];
 
 	// Construct a draggable red triangle with geodesic set to true.
@@ -79,9 +80,9 @@ function initMap() {
 		editable: true
 	});
 
-	//addLine();
+	flightPath.setMap(map);
 
-	google.maps.event.addListener(circle, 'radius_changed', function () {
+	/* google.maps.event.addListener(circle, 'radius_changed', function () {
 		console.log(circle.getRadius() + " " + circle);
 	});
 
@@ -93,9 +94,9 @@ function initMap() {
 		console.log('Vertex removed from inner path.' + innerPath);
 	});
 
-	google.maps.event.addListener(rectangle, 'bounds_changed', function () {
-		console.log('Bounds changed.' + rectangle);
-	});
+	google.maps.event.addListener(flightPath, 'bounds_changed', function () {
+		console.log('Bounds changed.' + flightPath);
+	});*/
 }
 
 function addLine() {
