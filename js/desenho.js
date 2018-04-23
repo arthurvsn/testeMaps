@@ -22,6 +22,9 @@ function initMap() {
         { lat: -19.855131501003562, lng: -43.958336359359464 },
         { lat: -19.856796516154840, lng: -43.959419971801480 },
         { lat: -19.857734971540168, lng: -43.957327848769864 },
+        { lat: -19.8558460721463, lng: -43.94691014895602 },
+        { lat: -19.85350494092158, lng: -43.9504721225278 },
+        { lat: -19.859115525185288, lng: -43.9519312442319 },
     ];
 
     drawingManager = new google.maps.drawing.DrawingManager({
@@ -56,40 +59,33 @@ function initMap() {
 
     addLine();
 
-    map.addListener('rightclick', function (e) {
-        setMapOnAll();
+    map.addListener(flightPath, 'rightclick', function (e) {
+        removeLine();
     });
     drawingManager.setMap(map);
 
     google.maps.event.addListener(drawingManager, 'overlaycomplete', function (e) {
 
-        var element = e.overlay;
-        
-        console.log(element);
+        //Valida qual tipo de desenho e pega as cordenadas após o desenho ser completo
+        if (e.type == 'polygon') {
+            var verticles = e.overlay.getPath();
+
+            verticles.forEach(function (verticle, ind) {
+                console.log({
+                    "index": ind,
+                    "lat": verticle.lat(),
+                    "lng": verticle.lng(),
+                });
+            });
+        }
+
+        var element = e.overlay;        
         google.maps.event.addListener(element, 'rightclick', function (event) {
             element.setMap(null);
-        });
-    });
-
-    //Pega as cordenadas após o desenho ser completo
-    google.maps.event.addListener(drawingManager, 'polygoncomplete', function (e) {
-        
-        console.log(e);
-        console.log();
-        console.log(drawingManager);
-
-        var vert = e.getPath(); //In the method we could get the vertices of the polygon which we have drawn.
-        var clat = 0; // To display the infowindow.
-        var clng = 0; // To display the infowindow.
-
-        vert.forEach(function (xy, i) {
-            clat = xy.lat();
-            clng = xy.lng();
-            console.log(clat + ", " + clng);
+            console.clear();
         });
 
     });
-
 }
 
 function placeMarkerAndPanTo(latLng, map) {
@@ -99,14 +95,6 @@ function placeMarkerAndPanTo(latLng, map) {
     });
     
     map.panTo(latLng);
-}
-
-
-function setMapOnAll() {
-
-    /* for (var i = 0; i < draws.length; i++) {
-        draws[i].setMap(null);
-    } */
 }
 
 function addLine() {
