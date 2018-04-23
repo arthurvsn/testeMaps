@@ -8,7 +8,9 @@
 { lat: -18.963879499998797, lng: -42.939273299054879 }, */
 var drawingManager;
 var map;
-var flightPath;
+var drawsDefault;
+var testeObj = [];
+var circle;
 
 function initMap() {
 
@@ -22,20 +24,25 @@ function initMap() {
         { lat: -19.855131501003562, lng: -43.958336359359464 },
         { lat: -19.856796516154840, lng: -43.959419971801480 },
         { lat: -19.857734971540168, lng: -43.957327848769864 },
-        { lat: -19.8558460721463, lng: -43.94691014895602 },
-        { lat: -19.85350494092158, lng: -43.9504721225278 },
-        { lat: -19.859115525185288, lng: -43.9519312442319 },
+        /* { lat: -19.855846072146300, lng: -43.946910148956020 },
+        { lat: -19.853504940921580, lng: -43.950472122527800 },
+        { lat: -19.859115525185288, lng: -43.951931244231900 }, */
     ];
 
     drawingManager = new google.maps.drawing.DrawingManager({
-        drawingMode: google.maps.drawing.OverlayType.POLYGON,
+        //drawingMode: google.maps.drawing.OverlayType.POLYGON,
         drawingControl: true,
         drawingControlOptions: {
             position: google.maps.ControlPosition.TOP_CENTER,
-                drawingModes: ['marker', 'polygon'],
+                drawingModes: ['marker', 'polygon', 'circle'],
         },
         markerOptions: {
             icon: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png'
+        },
+        circleOptions: {
+            editable: true,
+            draggable: true,
+            clickable: true,
         },
         polygonOptions: {
             editable: true,
@@ -44,7 +51,7 @@ function initMap() {
         },
     });
 
-    flightPath = new google.maps.Polygon({
+    drawsDefault = new google.maps.Polygon({
         map: map,
         paths: redCoords,
         strokeColor: '#FF0000',
@@ -57,9 +64,22 @@ function initMap() {
         editable: true
     });
 
-    addLine();
+    circle = new google.maps.Circle({
+        map: map,
+        center: new google.maps.LatLng(-19.856473605491274, -43.956051117278776),
+        radius: 298.7345976445909,
+        strokeColor: '#FFFFFF',
+        strokeOpacity: 1,
+        strokeWeight: 2,
+        fillColor: '#009ee0',
+        fillOpacity: 0.2
+    });
 
-    map.addListener(flightPath, 'rightclick', function (e) {
+    circle.setMap(map);
+
+    //addLine();
+
+    map.addListener(drawsDefault, 'rightclick', function (e) {
         removeLine();
     });
     drawingManager.setMap(map);
@@ -69,13 +89,21 @@ function initMap() {
         //Valida qual tipo de desenho e pega as cordenadas após o desenho ser completo
         if (e.type == 'polygon') {
             var verticles = e.overlay.getPath();
-
+            var obj = {};   
             verticles.forEach(function (verticle, ind) {
-                console.log({
-                    "index": ind,
+                obj = {
                     "lat": verticle.lat(),
                     "lng": verticle.lng(),
-                });
+                };
+            });
+            salvaObjetoDesenho(obj);
+        }
+
+        if (e.type == 'circle') {
+            console.log({
+                "lat": e.overlay.center.lat(),
+                "lng": e.overlay.center.lng(),
+                "radius" : e.overlay.getRadius(),
             });
         }
 
@@ -88,6 +116,13 @@ function initMap() {
     });
 }
 
+function salvaObjetoDesenho(objDesenho) {
+    posicao = objDesenho.length;
+
+    testeObj.push(objDesenho);
+    console.log(testeObj);
+}
+
 function placeMarkerAndPanTo(latLng, map) {
     var marker = new google.maps.Marker({
         position: latLng,
@@ -98,9 +133,9 @@ function placeMarkerAndPanTo(latLng, map) {
 }
 
 function addLine() {
-    flightPath.setMap(map);
+    drawsDefault.setMap(map);
 }
 
 function removeLine() {
-    flightPath.setMap(null);
+    drawsDefault.setMap(null);
 }
