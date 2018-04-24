@@ -44,7 +44,11 @@ var tryGeolocation = function () {
         navigator.geolocation.getCurrentPosition(
             browserGeolocationSuccess,
             browserGeolocationFail,
-            { maximumAge: 50000, timeout: 20000, enableHighAccuracy: true });
+            { 
+                maximumAge: 50000, 
+                timeout: 2000, 
+                enableHighAccuracy: true 
+            });
     }
 }
 
