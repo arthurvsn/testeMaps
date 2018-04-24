@@ -4,21 +4,22 @@
 	<title>Desenho de poligono no MAPS</title>
 	<meta name="viewport" content="initial-scale=1.0, user-scalable=no">
 	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<!-- <script src="js/inicioSigo.js" type="text/javascript"></script> -->
 	<script src="js/desenho.js" type="text/javascript"></script>
-	<script src="js/inicioSigo.js" type="text/javascript"></script>
 	<link href="css/index.css" rel="stylesheet" type="text/css" />
 	<meta charset="utf-8">
 </head>
 <body>
 	<div id="floating-panel">
-	<input onclick="removeLine();" type=button value="Remove line">
-	<input onclick="addLine();" type=button value="Restore line">
+		<label for="address">Digite a cidade que deseja que o mapa centralize:</label>
+		<input id="address" type="textbox" value="Jaraguá, Belo Horizonte, Minas Gerias, Brasil">
+		<input type="button" value="Buscar" onclick="codigoEndereco()">
 	</div>
 	
 	<div id="map"></div>
 
 	<script async defer
-		src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCR03RvG16Q9Wd-sZQLUOu-8gNepvQXtj0&libraries=drawing&callback=iniciaMapa">
+		src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCR03RvG16Q9Wd-sZQLUOu-8gNepvQXtj0&libraries=drawing">
 	</script>
 </body>
 </html>

@@ -10,56 +10,43 @@ var latPosicaoAtual;
 var lngPosicaoAtual;
 
 $(document).ready(function () {
-    tryGeolocation();
+    
 });
 
-/**
- * Get localização atual do browser
- */
-function tryGeolocation() {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            browserGeolocationSuccess,
-            browserGeolocationFail,
-            {
-                maximumAge: 50000,
-                timeout: 2000,
-                enableHighAccuracy: true
-            });
-    }
+function codigoEndereco() {
+
+    geocoder = new google.maps.Geocoder();
+    var endereco = document.getElementById('address').value;
+
+    geocoder.geocode({
+        'address': endereco
+    }, function (results, status) {
+        if (status == 'OK') {
+
+            var center = {
+                "lat": results[0].geometry.location.lat(),
+                "lng": results[0].geometry.location.lng()
+            };
+
+            iniciaMapa(center);
+        } else {
+            alert('Não foi possível buscar as coordenadas pois o google retorno o status ' + status + '.\nContate o setor de desenvolvimento');
+        }
+    });
 }
 
-var browserGeolocationSuccess = function (position) {
-    //alert("Browser geolocation success!\n\nlat = " + position.coords.latitude + "\nlng = " + position.coords.longitude);
-    latPosicaoAtual = parseFloat(position.coords.latitude);
-    lngPosicaoAtual = parseFloat(position.coords.longitude);
+function iniciaMapa(center) {
+    var zoom = 15;
 
-    /* console.log("Lat "+latPosicaoAtual);
-    console.log("Lng "+lngPosicaoAtual); */
-};
-
-var browserGeolocationFail = function (error) {
-    switch (error.code) {
-        case error.TIMEOUT:
-            alert("Browser geolocation error !\n\nTimeout.");
-            break;
-        case error.PERMISSION_DENIED:
-            if (error.message.indexOf("Only secure origins are allowed") == 0) {
-                tryAPIGeolocation();
-            }
-            break;
-        case error.POSITION_UNAVAILABLE:
-            alert("Browser geolocation error !\n\nPosition unavailable.");
-            break;
+    if (center == "") {
+        center = { 'lat': -14.235004, 'lng': -51.92527999999999 };
+        zoom = 3;
     }
-};
-
-function iniciaMapa() {
 
     mapa = new google.maps.Map(document.getElementById('map'), {
-        //center: { lat: -19.856473605491274, lng: -43.956051117278776 },
-        center: { lat: +latPosicaoAtual, lng: +lngPosicaoAtual },
-        zoom: 15,
+        center: center,
+        //center: { lat: latPosicaoAtual, lng: lngPosicaoAtual },
+        zoom: zoom,
         mapTypeId: 'roadmap',
     });
 

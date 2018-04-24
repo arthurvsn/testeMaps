@@ -13,68 +13,57 @@ var testeObj = [];
 var circle;
 var latPosicaoAtual;
 var lngPosicaoAtual;
-
+var geocoder;
+var center;
 
 $(document).ready(function(){
-    tryGeolocation();
 });
 
-function tryGeolocation() {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            browserGeolocationSuccess,
-            browserGeolocationFail,
-            {
-                maximumAge: 50000,
-                timeout: 2000,
-                enableHighAccuracy: true
-            });
-    }
-}
+function codigoEndereco() {
 
-var browserGeolocationSuccess = function (position) {
-    //alert("Browser geolocation success!\n\nlat = " + position.coords.latitude + "\nlng = " + position.coords.longitude);
-    latPosicaoAtual = parseFloat(position.coords.latitude);
-    lngPosicaoAtual = parseFloat(position.coords.longitude);
-
-    /* console.log("Lat "+latPosicaoAtual);
-    console.log("Lng "+lngPosicaoAtual); */
-};
-
-var browserGeolocationFail = function (error) {
-    switch (error.code) {
-        case error.TIMEOUT:
-            alert("Browser geolocation error !\n\nTimeout.");
-            break;
-        case error.PERMISSION_DENIED:
-            if (error.message.indexOf("Only secure origins are allowed") == 0) {
-                tryAPIGeolocation();
-            }
-            break;
-        case error.POSITION_UNAVAILABLE:
-            alert("Browser geolocation error !\n\nPosition unavailable.");
-            break;
-    }
-};
-
-
-function initMap() {
-
-    map = new google.maps.Map(document.getElementById('map'), {
-        //center: { lat: -19.856473605491274, lng: -43.956051117278776 },
-        center: { lat: latPosicaoAtual, lng: lngPosicaoAtual },
-        zoom: 15
+    geocoder = new google.maps.Geocoder();
+    var endereco = document.getElementById('address').value;
+    
+    geocoder.geocode({ 
+        'address': endereco 
+    }, function (results, status) {
+        if (status == 'OK') {
+            
+            center = { 
+                "lat": results[0].geometry.location.lat(), 
+                "lng": results[0].geometry.location.lng()
+            };
+            initMap(center);
+        } else {
+            alert('Não foi possível buscar as coordenadas pois o google retorno o status ' + status + '.\nContate o setor de desenvolvimento');
+        }
     });
 
-    var redCoords = [
-        { lat: -19.856473605491274, lng: -43.956051117278776 },
-        { lat: -19.855131501003562, lng: -43.958336359359464 },
-        { lat: -19.856796516154840, lng: -43.959419971801480 },
-        { lat: -19.857734971540168, lng: -43.957327848769864 },
-    ];
+    initMap(center);
+}
+
+function initMap(center) {
+    var zoom = 15;
+
+    if(center == "")
+    {
+        center = { 'lat': -14.235004, 'lng': -51.92527999999999 };
+        zoom = 3;
+    }
+    map = new google.maps.Map(document.getElementById('map'), {
+        //center: { lat: -19.856473605491274, lng: -43.956051117278776 },
+        center: center,
+        zoom: zoom
+    });
+    
+    /**
+     * funcao pra buscar os desenhos ja existentes 
+     * se existir, tratar e salvar no array de objetos
+     * se não existir nada, seguir o fluxo normal
+     */    
 
     drawingManager = new google.maps.drawing.DrawingManager({
-        //drawingMode: google.maps.drawing.OverlayType.POLYGON,
+        drawingMode: google.maps.drawing.OverlayType.DEFAULT,
         drawingControl: true,
         drawingControlOptions: {
             position: google.maps.ControlPosition.TOP_CENTER,
@@ -95,39 +84,16 @@ function initMap() {
         },
     });
 
-    /* drawsDefault = new google.maps.Polygon({
-        map: map,
-        paths: redCoords,
-        strokeColor: '#FF0000',
-        strokeOpacity: 0.8,
-        strokeWeight: 2,
-        fillColor: '#FF0000',
-        fillOpacity: 0.35,
-        draggable: true,
-        geodesic: true,
-        editable: true
+    /* google.maps.event.addListener(drawsDefault, 'load', function (e) {
+        console.log("teste");
+        google.maps.event.addListener(drawsDefault, 'rightclick', function (e) {
+        });
     });
 
-    circle = new google.maps.Circle({
-        map: map,
-        center: new google.maps.LatLng(-19.85709735225589, -43.96660829196139),
-        //center: new google.maps.LatLng(-19.856473605491274, -43.956051117278776),
-        radius: 298.7345976445909,
-        //radius: 165.3381443242124,
-        strokeColor: '#FFFFFF',
-        strokeOpacity: 1,
-        strokeWeight: 2,
-        fillColor: '#009ee0',
-        fillOpacity: 0.2
-    });
-
-    //circle.setMap(map);
-
-    //addLine(); */
-
+    
     map.addListener(drawsDefault, 'rightclick', function (e) {
         removeLine();
-    });
+    }); */
 
     drawingManager.setMap(map);
 
@@ -195,6 +161,45 @@ function initMap() {
             alterarCoordenadasDesenho(element);
         });
     });
+}
+
+function criaDesenhosPadrao(objeto) {
+    if(objeto.tipo == "polygon") {
+
+        var redCoords = [
+            { lat: -19.856473605491274, lng: -43.956051117278776 },
+            { lat: -19.855131501003562, lng: -43.958336359359464 },
+            { lat: -19.856796516154840, lng: -43.959419971801480 },
+            { lat: -19.857734971540168, lng: -43.957327848769864 },
+        ];
+
+        drawsDefault = new google.maps.Polygon({
+            map: map,
+            paths: objeto.coordenadas,
+            strokeColor: '#FF0000',
+            strokeOpacity: 0.8,
+            strokeWeight: 2,
+            fillColor: '#FF0000',
+            fillOpacity: 0.35,
+            draggable: true,
+            geodesic: true,
+            editable: true
+        });
+
+    } else if (objeto.tipo == "circle") {
+
+        circle = new google.maps.Circle({
+            map: map,
+            center: new google.maps.LatLng(-19.85709735225589, -43.96660829196139),
+            radius: objeto.raio,
+            strokeColor: '#FFFFFF',
+            strokeOpacity: 1,
+            strokeWeight: 2,
+            fillColor: '#009ee0',
+            fillOpacity: 0.2
+        });
+    }
+    drawsDefault.setMap(map);
 }
 
 function alterarCoordenadasDesenho(desenho) {
