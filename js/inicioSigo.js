@@ -122,9 +122,7 @@ function iniciaMapa(center) {
             obj = {
                 "id": elemento.zIndex,
                 "tipo": e.type,
-                "coordenadas": [
-                    poligono
-                ]
+                "coordenadas": poligono
             }
         } else if (e.type == 'circle') {
 
@@ -141,9 +139,7 @@ function iniciaMapa(center) {
             obj = {
                 "id": elemento.zIndex,
                 "tipo": e.type,
-                "coordenadas": [
-                    circles
-                ]
+                "coordenadas": circles
             }
         }
         

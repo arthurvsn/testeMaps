@@ -23,7 +23,8 @@ function codigoEndereco() {
 
     geocoder = new google.maps.Geocoder();
     var endereco = document.getElementById('address').value;
-    
+    var center = "";
+
     geocoder.geocode({ 
         'address': endereco 
     }, function (results, status) {
@@ -33,13 +34,14 @@ function codigoEndereco() {
                 "lat": results[0].geometry.location.lat(), 
                 "lng": results[0].geometry.location.lng()
             };
+            
             initMap(center);
+
         } else {
             alert('Não foi possível buscar as coordenadas pois o google retorno o status ' + status + '.\nContate o setor de desenvolvimento');
         }
     });
-
-    initMap(center);
+    
 }
 
 function initMap(center) {
@@ -56,12 +58,6 @@ function initMap(center) {
         zoom: zoom
     });
     
-    /**
-     * funcao pra buscar os desenhos ja existentes 
-     * se existir, tratar e salvar no array de objetos
-     * se não existir nada, seguir o fluxo normal
-     */    
-
     drawingManager = new google.maps.drawing.DrawingManager({
         drawingMode: google.maps.drawing.OverlayType.DEFAULT,
         drawingControl: true,
@@ -84,16 +80,12 @@ function initMap(center) {
         },
     });
 
-    /* google.maps.event.addListener(drawsDefault, 'load', function (e) {
-        console.log("teste");
-        google.maps.event.addListener(drawsDefault, 'rightclick', function (e) {
-        });
-    });
-
-    
-    map.addListener(drawsDefault, 'rightclick', function (e) {
-        removeLine();
-    }); */
+    /**
+     * funcao pra buscar os desenhos ja existentes 
+     * se existir, tratar e salvar no array de objetos
+     * se não existir nada, seguir o fluxo normal
+     */
+    buscaCercasCadastradas();
 
     drawingManager.setMap(map);
 
@@ -109,107 +101,164 @@ function initMap(center) {
             var verticles = e.overlay.getPath();
             var polygon = [];
             
-            google.maps.event.addListener(verticles, 'set_at', function (event) {
-                alterarCoordenadasDesenho(element);
-            });
-
-            google.maps.event.addListener(verticles, 'insert_at', function (event) {
-                alterarCoordenadasDesenho(element);
-            });
             
             verticles.forEach(function (verticle, ind) {
                 polygon[ind] = {
-                    "id": element.zIndex,
                     "lat": verticle.lat(),
-                    "lng": verticle.lng(),
+                    "lng": verticle.lng(),                    
                 }
             });
-
+            
             obj = {
-                "id": element.zIndex,
-                "type": e.type,
-                "coordinates": polygon
+                "tipo": e.type,
+                "coordenadas": polygon,
+                "id": "",
             }
+            google.maps.event.addListener(verticles, 'set_at', function (event) {
+                alterarCoordenadasDesenho(obj, element);
+            });
+
+            google.maps.event.addListener(verticles, 'insert_at', function (event) {
+                alterarCoordenadasDesenho(obj, element);
+            });
+
         } else if (e.type == 'circle') {
 
-            google.maps.event.addListener(element, 'radius_changed', function (event) {
-                alterarCoordenadasDesenho(element);
-            });
-            
             var circles = {};
             circles = {
                 "lat": e.overlay.center.lat(),
                 "lng": e.overlay.center.lng(),
-                "radius" : e.overlay.getRadius(),
             };
             obj = {
-                "id": element.zIndex,
-                "type": e.type,
-                "coordinates": [
-                    circles
-                ]
+                "tipo": e.type,
+                "coordenadas": circles,
+                "raio": e.overlay.getRadius(),
+                "id": "",
             }
+
+            google.maps.event.addListener(element, 'radius_changed', function (event) {
+                alterarCoordenadasDesenho(obj, element);
+            });
         }
 
-        testeObj.push(obj);
+        //testeObj.push(obj);
+        pushDesenho(obj);
 
         google.maps.event.addListener(element, 'rightclick', function (event) {
-            deletElement(element);
+            deletElement(obj, element);
         });
 
         google.maps.event.addListener(element, 'dragend', function (event) {
-            alterarCoordenadasDesenho(element);
+            alterarCoordenadasDesenho(obj, element);
         });
     });
 }
 
-function criaDesenhosPadrao(objeto) {
-    if(objeto.tipo == "polygon") {
+function buscaCercasCadastradas() {
+    $.ajax({
+        url: "../backend/teste.php",
+        type: 'POST',
+        dataType: "JSON",
+        async: true,
+        data: {}
+    }).done(function (response) {
 
-        var redCoords = [
-            { lat: -19.856473605491274, lng: -43.956051117278776 },
-            { lat: -19.855131501003562, lng: -43.958336359359464 },
-            { lat: -19.856796516154840, lng: -43.959419971801480 },
-            { lat: -19.857734971540168, lng: -43.957327848769864 },
-        ];
-
-        drawsDefault = new google.maps.Polygon({
-            map: map,
-            paths: objeto.coordenadas,
-            strokeColor: '#FF0000',
-            strokeOpacity: 0.8,
-            strokeWeight: 2,
-            fillColor: '#FF0000',
-            fillOpacity: 0.35,
-            draggable: true,
-            geodesic: true,
-            editable: true
-        });
-
-    } else if (objeto.tipo == "circle") {
-
-        circle = new google.maps.Circle({
-            map: map,
-            center: new google.maps.LatLng(-19.85709735225589, -43.96660829196139),
-            radius: objeto.raio,
-            strokeColor: '#FFFFFF',
-            strokeOpacity: 1,
-            strokeWeight: 2,
-            fillColor: '#009ee0',
-            fillOpacity: 0.2
-        });
-    }
-    drawsDefault.setMap(map);
+        if (response.tipoResposta) {
+            criaDesenhosPadrao(response.objetoCoordenadas);
+        } else {
+            alert(response.msg);
+        }
+    }).fail(function (erro) {
+        console.log(erro);
+    });
 }
 
-function alterarCoordenadasDesenho(desenho) {
-    testeObj.forEach(function (objeto, indice) {
+function criaDesenhosPadrao(objetos) {
 
-        if (desenho.zIndex == testeObj[indice].id) {
+    objetos.forEach(function (objeto, indice) {
+        var desenho;
 
-            if (testeObj[indice].type == "polygon") {
+        if (objeto.tipo == "polygon") {
+            
+            var redCoords = [];
+            objeto.coordenadas.forEach(function (elementoCoordenada, indiceCoordenada) {
+                redCoords.push(elementoCoordenada);
+            });
 
-                var verticles = desenho.getPath();
+            desenho = new google.maps.Polygon({
+                map: map,
+                paths: redCoords,
+                strokeColor: '#FF0000',
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
+                fillColor: '#FF0000',
+                fillOpacity: 0.35,
+                draggable: true,
+                geodesic: true,
+                editable: true,
+                
+            });
+            
+            //desenho.setMap(map);
+    
+        } else if (objeto.tipo == "circle") {
+            
+            desenho = new google.maps.Circle({
+                map: map,
+                center: new google.maps.LatLng(objeto.coordenadas[0]),
+                radius: objeto.raio, 
+                strokeColor: '#FFF000',
+                strokeOpacity: 1,
+                strokeWeight: 2,
+                fillColor: '#009ee0',
+                fillOpacity: 0.2,
+                draggable: true,
+                geodesic: true,
+                editable: true,
+                zIndex: '1.0f',
+            });            
+        }
+        
+        desenho.setMap(map);
+
+        google.maps.event.addListener(desenho, 'rightclick', function (event) {
+            deletElement(objeto, desenho);
+        });
+
+        google.maps.event.addListener(desenho, 'dragend', function (event) {
+            alterarCoordenadasDesenho(objeto, desenho);
+        });
+
+        pushDesenho(objeto);
+    });    
+}
+
+
+function pushDesenho(desenho) {
+
+    var ultimo = testeObj.length;
+
+    if (ultimo > 0) {
+        var ultimoIdDesenho = testeObj[ultimo - 1].id;
+
+        var idDesenho = ultimoIdDesenho + 1;
+        desenho.id = idDesenho;
+    } else {
+        desenho.id = 0;
+    }
+    testeObj.push(desenho);
+}
+
+
+function alterarCoordenadasDesenho(desenho, elemento) {
+    
+    testeObj.forEach(function (element, index) {
+
+        if (desenho.id == testeObj[index].id) {
+
+            if (testeObj[index].tipo == "polygon") {
+
+                var verticles = elemento.getPath();
                 var newPolygon = [];
 
                 verticles.forEach(function (verticle, ind) {
@@ -219,48 +268,32 @@ function alterarCoordenadasDesenho(desenho) {
                     }
                 });
 
-                testeObj[indice].coordinates = newPolygon;
+                testeObj[index].coordenadas = newPolygon;
 
-            } else if (testeObj[indice].type == "circle") {
-
+            } else if (testeObj[index].tipo == "circle") {
                 var newCircles = {};
                 newCircles = {
-                    "lat": desenho.center.lat(),
-                    "lng": desenho.center.lng(),
-                    "radius": desenho.getRadius(),
+                    "lat": elemento.center.lat(),
+                    "lng": elemento.center.lng(),
+                    
                 };
-                testeObj[indice].coordinates = newCircles;
-            } 
-
+                testeObj[index].coordenadas = newCircles;
+                testeObj[index].raio = elemento.getRadius();
+            }
         }
     });
 }
 
-function placeMarkerAndPanTo(latLng, map) {
-    var marker = new google.maps.Marker({
-        position: latLng,
-        map: map
-    });
-    
-    map.panTo(latLng);
-}
-
-function addLine() {
-    drawsDefault.setMap(map);
-}
-
-function removeLine() {
-    drawsDefault.setMap(null);
-}
-
-
 //Deletar um desenho de cerca do array principal
-function deletElement(desenho) {
+function deletElement(desenho, elemento) {
 
-    testeObj.forEach(function(i, element){
-        if(desenho.zIndex == testeObj[element].id) {            
-            testeObj.splice(element, 1);
-            desenho.setMap(null);
+    testeObj.forEach(function(element, index){
+
+        if(desenho.id == testeObj[index].id) {
+
+            testeObj.splice(index, 1);
+            elemento.setMap(null);
+    
         }
     });
 }
