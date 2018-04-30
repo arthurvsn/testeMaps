@@ -2,10 +2,12 @@
 // parameter when you first load the API. For example:
 // <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=drawing">
 /* center: { lat: -19.963879499999997, lng: -43.939273299999996 }, */
-/* { lat: -19.963879499999997, lng: -43.939273299998787 },
+/*
+{ lat: -19.963879499999997, lng: -43.939273299998787 },
 { lat: -18.963879499990549, lng: -42.939273299789790 },
 { lat: -18.963879499993418, lng: -42.939273299879797 },
-{ lat: -18.963879499998797, lng: -42.939273299054879 }, */
+{ lat: -18.963879499998797, lng: -42.939273299054879 }, 
+*/
 var drawingManager;
 var map;
 var drawsDefault;
@@ -15,6 +17,7 @@ var latPosicaoAtual;
 var lngPosicaoAtual;
 var geocoder;
 var center;
+var marker;
 
 $(document).ready(function(){
 });
@@ -66,7 +69,9 @@ function initMap(center) {
                 drawingModes: ['marker', 'polygon', 'circle'],
         },
         markerOptions: {
-            icon: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png'
+            editable: true,
+            clickable: true,
+            draggable: true,
         },
         circleOptions: {
             editable: true,
@@ -80,12 +85,33 @@ function initMap(center) {
         },
     });
 
+    var redCoords = [
+        { "lat": -19.854299135444126, "lng": -43.95846030163574 },
+        { "lat": -19.858335526821130, "lng": -43.95871779370117 },
+        { "lat": -19.858496980340174, "lng": -43.95296713757324 },
+        { "lat": -19.854339499866196, "lng": -43.95313879895019 },
+    ];
+
+    /* drawsDefault = new google.maps.Polygon({
+        map: map,
+        paths: redCoords,
+        strokeColor: '#FF0000',
+        strokeOpacity: 0.8,
+        strokeWeight: 2,
+        fillColor: '#FF0000',
+        fillOpacity: 0.35,
+        draggable: true,
+        geodesic: true,
+        editable: true
+    });
+    drawsDefault.setMap(map); */
+
     /**
      * funcao pra buscar os desenhos ja existentes 
      * se existir, tratar e salvar no array de objetos
      * se não existir nada, seguir o fluxo normal
      */
-    buscaCercasCadastradas();
+    //buscaCercasCadastradas();
 
     drawingManager.setMap(map);
 
@@ -93,65 +119,201 @@ function initMap(center) {
 
         var obj = [];
         var element = e.overlay;
+        
+        if (e.type == "marker") {
+            
+            marker = {
+                "lat": element.getPosition().lat(),
+                "lng": element.getPosition().lng(),
+            }
 
-        //Valida qual tipo de desenho e pega as cordenadas após o desenho ser completo
-        if (e.type == 'polygon') {
-
-            
-            var verticles = e.overlay.getPath();
-            var polygon = [];
-            
-            
-            verticles.forEach(function (verticle, ind) {
-                polygon[ind] = {
-                    "lat": verticle.lat(),
-                    "lng": verticle.lng(),                    
+            google.maps.event.addListener(element, 'dragend', function (event) {
+                marker = {
+                    "lat": element.getPosition().lat(),
+                    "lng": element.getPosition().lng(),
                 }
             });
-            
-            obj = {
-                "tipo": e.type,
-                "coordenadas": polygon,
-                "id": "",
+        }
+        else {
+
+            //Valida qual tipo de desenho e pega as cordenadas após o desenho ser completo
+            if (e.type == 'polygon') {
+
+
+                var verticles = e.overlay.getPath();
+                var polygon = [];
+
+
+                verticles.forEach(function (verticle, ind) {
+                    polygon[ind] = {
+                        "lat": verticle.lat(),
+                        "lng": verticle.lng(),
+                    }
+                });
+
+                obj = {
+                    "tipo": e.type,
+                    "coordenadas": polygon,
+                    "id": "",
+                }
+                google.maps.event.addListener(verticles, 'set_at', function (event) {
+                    alterarCoordenadasDesenho(obj, element);
+                });
+
+                google.maps.event.addListener(verticles, 'insert_at', function (event) {
+                    alterarCoordenadasDesenho(obj, element);
+                });
+
+            } else if (e.type == 'circle') {
+
+                var circles = {};
+                circles = {
+                    "lat": e.overlay.center.lat(),
+                    "lng": e.overlay.center.lng(),
+                };
+                obj = {
+                    "tipo": e.type,
+                    "coordenadas": circles,
+                    "raio": e.overlay.getRadius(),
+                    "id": "",
+                }
+
+                google.maps.event.addListener(element, 'radius_changed', function (event) {
+                    alterarCoordenadasDesenho(obj, element);
+                });
             }
-            google.maps.event.addListener(verticles, 'set_at', function (event) {
-                alterarCoordenadasDesenho(obj, element);
+
+            //testeObj.push(obj);
+            pushDesenho(obj);
+
+            google.maps.event.addListener(element, 'rightclick', function (event) {
+                deletElement(obj, element);
             });
 
-            google.maps.event.addListener(verticles, 'insert_at', function (event) {
-                alterarCoordenadasDesenho(obj, element);
+            google.maps.event.addListener(element, 'dblclick', function (event) {
+                validaCoordenada(obj, element);
             });
 
-        } else if (e.type == 'circle') {
+            /* google.maps.event.addListener(element, 'dragend', function (event) {
+                alterarCoordenadasDesenho(obj, element);
+            }); */
+        }
+        
+    });
+}
 
-            var circles = {};
-            circles = {
-                "lat": e.overlay.center.lat(),
-                "lng": e.overlay.center.lng(),
-            };
-            obj = {
-                "tipo": e.type,
-                "coordenadas": circles,
-                "raio": e.overlay.getRadius(),
-                "id": "",
+function testeValidaPonto() {
+    $.ajax({
+        url: "../backend/validarPonto.php",
+        type: 'POST',
+        dataType: "JSON",
+        async: true,
+        data: {
+            "marker": marker,
+            "circle": testeObj
+        }
+    }).done(function (response) {
+
+        console.log(response);
+        if (response.response) {
+            alert("pode bater o ponto");
+        } else {
+            alert(response.msg);
+        }
+    }).fail(function (erro) {
+        console.log(erro);
+    });   
+}
+/* GMaps.prototype.checkGeofence = function (lat, lng, fence) {
+    return fence.containsLatLng(new google.maps.LatLng(lat, lng));
+};
+
+function teste(usuario) {
+
+}
+
+GMaps.prototype.checkMarkerGeofence = function (marker, outside_callback) {
+    if (marker.fences) {
+        for (var i = 0, fence; fence = marker.fences[i]; i++) {
+            var pos = marker.getPosition();
+            if (!this.checkGeofence(pos.lat(), pos.lng(), fence)) {
+                outside_callback(marker, fence);
             }
+        }
+    }
+}; */
 
-            google.maps.event.addListener(element, 'radius_changed', function (event) {
-                alterarCoordenadasDesenho(obj, element);
-            });
+function validaCoordenada(element, marker) {
+
+    var obj = {
+        "coordenadas": [
+            { "lat": -19.854299135444126, "lng": -43.95846030163574 },
+            { "lat": -19.858335526821130, "lng": -43.95871779370117 },
+            { "lat": -19.858496980340174, "lng": -43.95296713757324 },
+            { "lat": -19.854339499866196, "lng": -43.95313879895019 },
+        ]   
+    };
+
+    var x1 = 999999999;
+    var x2 = -99999999;
+    var y1 = 999999999;
+    var y2 = -99999999;
+
+    obj.coordenadas.forEach(function (objeto, index){
+
+        if(x1 > objeto.lat) {
+            x1 = objeto.lat;
+        } 
+
+        if(x2 < objeto.lat && objeto.lat != x1) {
+            x2 = objeto.lat;
         }
 
-        //testeObj.push(obj);
-        pushDesenho(obj);
+        if(y1 > objeto.lng) {
+            y1 = objeto.lng;
+        }
 
-        google.maps.event.addListener(element, 'rightclick', function (event) {
-            deletElement(obj, element);
-        });
-
-        google.maps.event.addListener(element, 'dragend', function (event) {
-            alterarCoordenadasDesenho(obj, element);
-        });
+        if(y2 < objeto.lat && objeto.lat != y1) {
+            y2 = objeto.lng;
+        }
     });
+
+    //var tentativa = {"lat": -19.86233145312041, "lng": -43.95219466137695};
+    var tentativa = {
+        "lat": marker.latLng.lat(),
+        "lng": marker.latLng.lng(),
+    };
+
+    console.log("X1: " + x1);
+    console.log("X2: " + x2);
+    console.log("Y1: " + y1);
+    console.log("Y2: " + y2);
+    console.log("Marker => lat:" + tentativa.lat + " lng: " + tentativa.lng);
+
+
+    console.log("\nDebug de IF's");
+
+    if (tentativa.lat >= x1) {
+        console.log("Lat >= x1");
+    }
+    if (tentativa.lat <= x2) {
+        console.log("Lat <= x2");
+    }
+    if (tentativa.lng >= y1) {
+        console.log("Lng >= y1");
+    }
+    if (tentativa.lng <= y2) {
+        console.log("Lng <= y2");
+
+    }
+
+    //voce pode fazer assim
+    if ((tentativa.lat >= x1 && tentativa.lat <= x2) && (tentativa.lng >= y1 && tentativa.lng <= y2)) {
+        console.log(true);
+    }
+    else {
+        console.log(false);
+    }
 }
 
 function buscaCercasCadastradas() {
@@ -163,18 +325,18 @@ function buscaCercasCadastradas() {
         data: {}
     }).done(function (response) {
 
-        if (response.tipoResposta) {
+        /* if (response.tipoResposta) {
             criaDesenhosPadrao(response.objetoCoordenadas);
         } else {
             alert(response.msg);
-        }
+        } */
     }).fail(function (erro) {
-        console.log(erro);
+        //console.log(erro);
     });
 }
 
 function criaDesenhosPadrao(objetos) {
-
+    console.log(objetos); return false;
     objetos.forEach(function (objeto, indice) {
         var desenho;
 
@@ -249,6 +411,9 @@ function pushDesenho(desenho) {
     testeObj.push(desenho);
 }
 
+function alteraCoordenadaMarkder(marker, elemento) {
+
+}
 
 function alterarCoordenadasDesenho(desenho, elemento) {
     

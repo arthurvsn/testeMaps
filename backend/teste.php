@@ -1,10 +1,5 @@
 <?php
 
-    $arrayObjetosCoordenadas = new stdClass();
-    //$arrayObjetosCoordenadas = [];
-    /* $arrayObjetosCoordenadas->msg = "Error";
-    $arrayObjetosCoordenadas->response = false; */
-
     $arrayObjetosCoordenadas->msg = "Sucess!";
     $arrayObjetosCoordenadas->tipoResposta = true;
 
@@ -23,14 +18,12 @@
     $objetoCoordenadasCircle = new stdClass();
     $objetoCoordenadasCircle->tipo = "circle";
     $objetoCoordenadasCircle->coordenadas[] = ["lat" => -19.85413389348419, "lng" => -43.95562788891601];
-    $objetoCoordenadasCircle->raio = 296.62907177016143;
+    //$objetoCoordenadasCircle->raio =  ;
+    $objetoCoordenadasCircle->raio = 10;
     $arrayObjetosCoordenadas->objetoCoordenadas[] = $objetoCoordenadasCircle;
 
     $retorno = json_encode($arrayObjetosCoordenadas);
 
     echo $retorno;
 
-    
-/*  {lat: -19.85413168605226, lng: -43.963910550354}
-    {lat: -19.858934985250798, lng: -43.964296788452145} */
 ?>
