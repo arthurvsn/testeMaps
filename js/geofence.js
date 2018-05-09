@@ -29,15 +29,14 @@ obj.coordenadas.forEach(function (objeto, index) {
         y1 = objeto.lng;
     }
 
-    if (y2 <= objeto.lat) {
+    if (y2 <= objeto.lng) {
         y2 = objeto.lng;
     }
 });
 
 //var tentativa = {"lat": -19.86233145312041, "lng": -43.95219466137695};
 var tentativa = {
-    "lat": -19.858472068577417,
-    "lng": -43.95302413451475
+    "lat": -19.85426381656637, "lng": -43.95321289497417
 };
 
 console.log("X1: " + x1);

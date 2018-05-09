@@ -1,7 +1,7 @@
 var token = make_base_auth("SIGO", "94a4964c959e7fafd868b85a301e8d47");
 $(document).ready(function () {
     //testeWsSigo();
-    tryGeolocation();
+    /* tryGeolocation(); */
 });
 
 var apiGeolocationSuccess = function (position) {
@@ -59,21 +59,26 @@ function make_base_auth(user, password) {
 }
 
 function testeWsSigo() {
+
+    var uf  = $("#uf").val();
+
+    if (uf == "") {
+        return false;
+    }
+    
+    var url = "http://localhost/SIGO_INTEGRADO_3/wsTelemont/sigo/adm/ponto/buscarColaboradoresUf/"+uf;
+
     $.ajax({
         type:"GET",
-        //url: "http://MTZD37083/SIGO_INTEGRADO_3/wsTelemont/rm/buscarFuncoes",
-        url: "http://192.168.5.51:8007/SIGO_INTEGRADO_3/wsTelemont/rm/buscarFuncoes",
+        url: url,
         dataType: "json",
         crossDomain: true,
         async: false,
         headers: {
-            //'Authorization': 'basic '+ token,
+            user: 'sigo', 
+            pass: '94a4964c959e7fafd868b85a301e8d47',
         },
-        beforeSend: function(xhr) {
-            //xhr.setRequestHeader('Authorization', "Basic " + make_base_auth("SIGO", "94a4964c959e7fafd868b85a301e8d47"));
-            xhr.setRequestHeader("Authorization", "Basic" + make_base_auth("SIGO", "94a4964c959e7fafd868b85a301e8d47"));
-            xhr.setRequestHeader('Content-Type', 'application/json');
-        },
+        beforeSend: function(xhr) { },
         data: { },
         success: function (res) {
             console.log(res);

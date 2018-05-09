@@ -66,7 +66,7 @@ function initMap(center) {
         drawingControl: true,
         drawingControlOptions: {
             position: google.maps.ControlPosition.TOP_CENTER,
-                drawingModes: ['marker', 'polygon', 'circle'],
+                drawingModes: ['marker', 'polygon', 'circle', 'rectangle'],
         },
         markerOptions: {
             editable: true,
@@ -83,16 +83,21 @@ function initMap(center) {
             draggable: true,
             clickable: true,
         },
+        rectangleOptions: {
+            editable: true,
+            draggable: true,
+            clickable: true,
+        }
     });
 
-    var redCoords = [
+    /* var redCoords = [
         { "lat": -19.854299135444126, "lng": -43.95846030163574 },
         { "lat": -19.858335526821130, "lng": -43.95871779370117 },
         { "lat": -19.858496980340174, "lng": -43.95296713757324 },
         { "lat": -19.854339499866196, "lng": -43.95313879895019 },
     ];
 
-    /* drawsDefault = new google.maps.Polygon({
+    drawsDefault = new google.maps.Polygon({
         map: map,
         paths: redCoords,
         strokeColor: '#FF0000',
@@ -112,7 +117,7 @@ function initMap(center) {
      * se não existir nada, seguir o fluxo normal
      */
     //buscaCercasCadastradas();
-
+    
     drawingManager.setMap(map);
 
     google.maps.event.addListener(drawingManager, 'overlaycomplete', function (e) {
@@ -181,6 +186,11 @@ function initMap(center) {
                 google.maps.event.addListener(element, 'radius_changed', function (event) {
                     alterarCoordenadasDesenho(obj, element);
                 });
+            } else if (e.type == 'rectangle') {
+                
+                var ne = element.getBounds().getNorthEast();
+                var sw = element.getBounds().getSouthWest();
+                console.log(ne.lat() + ', ' + ne.lng() + '<br>' + sw.lat() + ', ' + sw.lng());
             }
 
             //testeObj.push(obj);
@@ -210,7 +220,8 @@ function testeValidaPonto() {
         async: true,
         data: {
             "marker": marker,
-            "circle": testeObj
+            "circle": testeObj,
+            'tipo': 'circle'
         }
     }).done(function (response) {
 
@@ -273,7 +284,7 @@ function validaCoordenada(element, marker) {
             y1 = objeto.lng;
         }
 
-        if(y2 < objeto.lat && objeto.lat != y1) {
+        if(y2 < objeto.lat && objeto.lng != y1) {
             y2 = objeto.lng;
         }
     });
@@ -325,11 +336,12 @@ function buscaCercasCadastradas() {
         data: {}
     }).done(function (response) {
 
-        /* if (response.tipoResposta) {
+        if (response.tipoResposta) {
             criaDesenhosPadrao(response.objetoCoordenadas);
         } else {
             alert(response.msg);
-        } */
+        }
+
     }).fail(function (erro) {
         //console.log(erro);
     });
