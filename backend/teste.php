@@ -19,15 +19,15 @@
     $objetoCoordenadasCircle->tipo = "circle";
     $objetoCoordenadasCircle->coordenadas[] = ["lat" => -19.85413389348419, "lng" => -43.95562788891601];
     //$objetoCoordenadasCircle->raio =  ;
-    $objetoCoordenadasCircle->raio = 10;
+    $objetoCoordenadasCircle->raio = 1000;
     $arrayObjetosCoordenadas->objetoCoordenadas[] = $objetoCoordenadasCircle;
 
-    $objetoCoordenadasCircle = new stdClass();
+    /* $objetoCoordenadasCircle = new stdClass();
     $objetoCoordenadasCircle->tipo = "circle";
     $objetoCoordenadasCircle->coordenadas[] = ["lat" => -19.85413389348419, "lng" => -43.95562788891601];
     //$objetoCoordenadasCircle->raio =  ;
     $objetoCoordenadasCircle->raio = 11;
-    $arrayObjetosCoordenadas->objetoCoordenadas[] = $objetoCoordenadasCircle;
+    $arrayObjetosCoordenadas->objetoCoordenadas[] = $objetoCoordenadasCircle; */
 
     $retorno = json_encode($arrayObjetosCoordenadas);
 

@@ -116,7 +116,7 @@ function initMap(center) {
      * se existir, tratar e salvar no array de objetos
      * se não existir nada, seguir o fluxo normal
      */
-    //buscaCercasCadastradas();
+    buscaCercasCadastradas();
     
     drawingManager.setMap(map);
 
@@ -348,7 +348,7 @@ function buscaCercasCadastradas() {
 }
 
 function criaDesenhosPadrao(objetos) {
-    console.log(objetos); return false;
+    
     objetos.forEach(function (objeto, indice) {
         var desenho;
 
