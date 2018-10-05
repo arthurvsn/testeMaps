@@ -1,4 +1,3 @@
-var token = make_base_auth("SIGO", "94a4964c959e7fafd868b85a301e8d47");
 $(document).ready(function () {
     //testeWsSigo();
     /* tryGeolocation(); */
@@ -7,7 +6,8 @@ $(document).ready(function () {
     rvHistorico();
     rvGatilhos();
     rvDetalhamentoBonus(); */
-    rvDetalhamentoPontos();
+    //rvDetalhamentoPontos();
+    //buscaVeiculosAgregados();
 });
 
 var apiGeolocationSuccess = function (position) {
@@ -73,8 +73,8 @@ function testeWsSigoColaborador() {
         alert("Sem valor");
         return false;
     }
-    //var url = "http://sigo.telemont.com.br:8007/SIGO_INTEGRADO_3/wsTelemont/thinc/buscarColaboradoresUf/"+uf;
-    var url = "http://localhost/SIGO_INTEGRADO_3/wsTelemont/thinc/buscarColaboradoresUf/"+uf;
+    var url = "http://sigo.telemont.com.br:8007/SIGO_INTEGRADO_3/wsTelemont/thinc/buscarColaboradoresUf/"+uf;
+    //var url = "http://localhost/SIGO_INTEGRADO_3/wsTelemont/thinc/buscarColaboradoresUf/"+uf;
 
     $.ajax({
         type:"GET",
@@ -383,6 +383,33 @@ function rvDetalhamentoBonus() {
         data: {},
         success: function (res) {
             console.log(res);
+        },
+        error: function (response) {
+            console.log("Error " + response);
+        }
+    });
+}
+
+function buscaVeiculosAgregados() {
+
+    var url = "http://sigo.telemont.com.br:8007/SIGO_INTEGRADO_3/wsTelemont/thinc/buscaVeiculosAgregados/AC";
+    //var url = "http://localhost/SIGO_INTEGRADO_3/wsTelemont/sigo_seguro/rv/indicadores/rvDetalhamentoBonus/1";
+
+    $.ajax({
+        type: "GET",
+        url: url,
+        dataType: "json",
+        crossDomain: true,
+        async: false,
+        headers: {
+            user: 'sigo',
+            pass: '94a4964c959e7fafd868b85a301e8d47',
+        },
+        beforeSend: function (xhr) { },
+        data: {},
+        success: function (res) {
+            console.log(res);
+            $("#retornoWs").html(res);
         },
         error: function (response) {
             console.log("Error " + response);
